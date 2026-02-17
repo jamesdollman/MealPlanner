@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import Home from "./pages/Home";
 import Login from "./pages/Login";
 import { useSession } from "./zustand/user";
-import { Text } from "@chakra-ui/react";
 
 function App() {
   const queryClient = new QueryClient();
@@ -10,7 +10,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       {!isUserSignedIn && <Login />}
-      {isUserSignedIn && <Text>Welcome!</Text>}
+
+      {isUserSignedIn && <Home />}
     </QueryClientProvider>
   );
 }

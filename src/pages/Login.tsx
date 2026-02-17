@@ -11,9 +11,15 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { useSession } from ".././zustand/user";
+import { createClient } from "@supabase/supabase-js";
 
+// Create a single supabase client for interacting with your database
+const supabase = createClient(
+   import.meta.env.VITE_SUPABASE_PROJECT_URL,
+   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+);
 const Login = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const setLoggedInState = useSession((state) => state.setLoggedInState);
 
@@ -23,30 +29,24 @@ const Login = () => {
     error,
   } = useMutation({
     mutationFn: async () => {
-      const response = await fetch("https://your-api.com/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+      const response = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
       });
 
-      if (!response.ok) throw new Error("Login failed");
-      return response.json();
+      if (response.error) throw new Error("Login failed");
+      return response;
     },
     onSuccess: (data) => {
-      console.log("Logged in!", data);
-      // update your Zustand store here, redirect, etc.
+      setLoggedInState(data.data);
     },
     onError: (error) => {
-      if (username === "jd" && password === "jd") {
-        setLoggedInState(true);
-        return;
-      }
       console.error("Login error:", error);
     },
   });
 
   return (
-    <Dialog.Root defaultOpen={true} open={true}>
+    <Dialog.Root defaultOpen={true} open={true} placement={'center'}>
       <Dialog.Trigger />
       <Dialog.Backdrop />
       <Dialog.Positioner>
@@ -58,11 +58,11 @@ const Login = () => {
           <Dialog.Body />
           <Stack gap="4" paddingLeft={4} paddingRight={4}>
             <Field.Root>
-              <Field.Label>Username</Field.Label>
+              <Field.Label>Email</Field.Label>
               <Input
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </Field.Root>
             <Field.Root>
@@ -73,7 +73,7 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
               />
               {error && (
-                <Text color={"red"}>Your username/password is incorrect</Text>
+                <Text color={"red"}>Your email/password is incorrect</Text>
               )}
             </Field.Root>
           </Stack>
