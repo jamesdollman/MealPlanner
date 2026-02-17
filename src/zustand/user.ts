@@ -1,11 +1,22 @@
+import type { Session, User } from "@supabase/supabase-js";
 import { create } from "zustand";
+
+type UserData = {
+  user: User | null;
+  session: Session | null;
+};
 
 type SessionState = {
   isLoggedIn: boolean;
-  setLoggedInState: (newLoginState: boolean) => void
-}
+  setLoggedInState: (userInfo: UserData) => void;
+  user: UserData | null;
+  getUser: () => UserData | null;
+};
 
-export const useSession = create<SessionState>((set) => ({
+export const useSession = create<SessionState>((set, get) => ({
   isLoggedIn: false,
-  setLoggedInState: (newLoginState) => set(() => ({isLoggedIn: newLoginState})),
-}))
+  user: null,
+  setLoggedInState: (userInfo) =>
+    set(() => ({ isLoggedIn: true, user: userInfo })),
+  getUser: () => get().user,
+}));
