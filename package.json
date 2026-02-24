@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --experimental-specifier-resolution=node --test tests/*.test.ts",
+    "test:watch": "node --test --watch tests/*.test.ts"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.33.0",

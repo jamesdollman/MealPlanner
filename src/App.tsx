@@ -11,6 +11,7 @@ import Grocery from "./pages/Grocery";
 import { usePageSelector } from "./zustand/page";
 import { useSession } from "./zustand/user";
 import { Box } from "@chakra-ui/react";
+import { trackEvent } from "./utils/observability";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,10 @@ function App() {
       window.removeEventListener("popstate", onPopState);
     };
   }, [updatePageFromPath]);
+
+  useEffect(() => {
+    trackEvent("page_view", { page: selectedPage });
+  }, [selectedPage]);
 
   return (
     <QueryClientProvider client={queryClient}>
