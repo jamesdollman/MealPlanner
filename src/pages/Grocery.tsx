@@ -10,6 +10,8 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
+import { generateGroceryListFromPlan, readCalendarPlanFromStorage } from "../utils/groceryGeneration";
+import { trackEvent } from "../utils/observability";
 import type { GroceryItem } from "../types";
 import { usePantryStore } from "../zustand/pantry";
 import { useRecipesStore } from "../zustand/recipes";
@@ -17,8 +19,6 @@ import { useSession } from "../zustand/user";
 
 const CALENDAR_STORAGE_KEY = "mealplanner:calendar-v1";
 const GROCERY_STORAGE_KEY = "mealplanner:grocery-v1";
-
-type CalendarPlan = Record<string, Record<string, string | null>>;
 
 const readGroceryListFromStorage = (): GroceryItem[] => {
   try {
@@ -49,56 +49,15 @@ const Grocery = () => {
   }, [list]);
 
   const generatedList = useMemo(() => {
-    const raw = localStorage.getItem(CALENDAR_STORAGE_KEY);
-    if (!raw) return [] as GroceryItem[];
-
-    let plans: CalendarPlan;
-    try {
-      plans = JSON.parse(raw) as CalendarPlan;
-    } catch {
-      return [] as GroceryItem[];
-    }
-    const recipeIds = new Set<string>();
-
-    Object.values(plans).forEach((day) => {
-      Object.values(day).forEach((recipeId) => {
-        if (recipeId) recipeIds.add(recipeId);
-      });
-    });
-
-    const ingredientsMap = new Map<string, GroceryItem>();
-    recipes
-      .filter((recipe) => recipeIds.has(recipe.id))
-      .forEach((recipe) => {
-        recipe.ingredients.forEach((ingredient) => {
-          const key = `${ingredient.name.toLowerCase()}-${ingredient.unit}`;
-          const existing = ingredientsMap.get(key);
-          const pantryMatch = pantryItems.find((item) => item.name.toLowerCase() === ingredient.name.toLowerCase());
-          const neededQuantity = Math.max(ingredient.quantity - (pantryMatch?.quantity ?? 0), 0);
-          if (neededQuantity <= 0) return;
-
-          if (existing) {
-            existing.quantity += neededQuantity;
-            existing.recipe_titles = [...(existing.recipe_titles ?? []), recipe.title];
-          } else {
-            ingredientsMap.set(key, {
-              name: ingredient.name,
-              quantity: neededQuantity,
-              unit: ingredient.unit,
-              category: pantryMatch?.category ?? "other",
-              checked: false,
-              recipe_titles: [recipe.title],
-            });
-          }
-        });
-      });
-
-    return Array.from(ingredientsMap.values()).sort((a, b) => a.category.localeCompare(b.category));
+    const plans = readCalendarPlanFromStorage(CALENDAR_STORAGE_KEY);
+    return generateGroceryListFromPlan(plans, recipes, pantryItems);
   }, [pantryItems, recipes]);
 
   const regenerate = () => {
     const manualItems = list.filter((item) => !item.recipe_titles?.length);
-    setList([...generatedList, ...manualItems]);
+    const refreshedList = [...generatedList, ...manualItems];
+    setList(refreshedList);
+    trackEvent("grocery_regenerated", { generated: generatedList.length, manualRetained: manualItems.length });
   };
 
   const toggleChecked = (target: GroceryItem) => {
@@ -112,16 +71,20 @@ const Grocery = () => {
   };
 
   const archiveCompleted = () => {
+    const completedCount = list.filter((item) => item.checked).length;
     setList((current) => current.filter((item) => !item.checked));
+    trackEvent("grocery_archive_completed", { completedCount });
   };
 
   const addManualItem = () => {
     if (!manualName.trim()) return;
+    const trimmedName = manualName.trim();
     setList((current) => [
       ...current,
-      { name: manualName.trim(), quantity: 1, unit: "item", category: "other", checked: false },
+      { name: trimmedName, quantity: 1, unit: "item", category: "other", checked: false },
     ]);
     setManualName("");
+    trackEvent("grocery_manual_item_added", { name: trimmedName });
   };
 
   return (
