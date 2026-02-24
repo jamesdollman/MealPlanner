@@ -7,6 +7,8 @@ import type { RecipeInsert } from "../types";
 
 const Recipes = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedTag, setSelectedTag] = useState("");
+  const [maxTotalTime, setMaxTotalTime] = useState("");
   const user = useSession((state) => state.user);
   const { searchQuery, showFavouritesOnly, setSearchQuery, setShowFavouritesOnly, addRecipe, isLoading } =
     useRecipesStore();
@@ -29,6 +31,10 @@ const Recipes = () => {
         showFavouritesOnly={showFavouritesOnly}
         onSearchChange={setSearchQuery}
         onFavouritesToggle={setShowFavouritesOnly}
+        selectedTag={selectedTag}
+        maxTotalTime={maxTotalTime}
+        onTagChange={setSelectedTag}
+        onMaxTotalTimeChange={setMaxTotalTime}
         onAddClick={() => setIsFormOpen(true)}
       />
 
@@ -36,7 +42,8 @@ const Recipes = () => {
         <RecipeGrid
           searchQuery={searchQuery}
           showFavouritesOnly={showFavouritesOnly}
-          onAddClick={() => setIsFormOpen(true)}
+          selectedTag={selectedTag}
+          maxTotalTime={maxTotalTime}
         />
       </Box>
 
