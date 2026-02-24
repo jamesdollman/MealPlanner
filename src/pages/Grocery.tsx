@@ -20,15 +20,21 @@ const GROCERY_STORAGE_KEY = "mealplanner:grocery-v1";
 
 type CalendarPlan = Record<string, Record<string, string | null>>;
 
+const readGroceryListFromStorage = (): GroceryItem[] => {
+  try {
+    const saved = localStorage.getItem(GROCERY_STORAGE_KEY);
+    return saved ? (JSON.parse(saved) as GroceryItem[]) : [];
+  } catch {
+    return [];
+  }
+};
+
 const Grocery = () => {
   const user = useSession((state) => state.user);
   const { items: pantryItems, fetchItems } = usePantryStore();
   const { recipes, fetchRecipes } = useRecipesStore();
 
-  const [list, setList] = useState<GroceryItem[]>(() => {
-    const saved = localStorage.getItem(GROCERY_STORAGE_KEY);
-    return saved ? (JSON.parse(saved) as GroceryItem[]) : [];
-  });
+  const [list, setList] = useState<GroceryItem[]>(readGroceryListFromStorage);
   const [manualName, setManualName] = useState("");
 
   useEffect(() => {
@@ -38,7 +44,6 @@ const Grocery = () => {
     }
   }, [fetchItems, fetchRecipes, user?.user?.id]);
 
-
   useEffect(() => {
     localStorage.setItem(GROCERY_STORAGE_KEY, JSON.stringify(list));
   }, [list]);
@@ -47,7 +52,12 @@ const Grocery = () => {
     const raw = localStorage.getItem(CALENDAR_STORAGE_KEY);
     if (!raw) return [] as GroceryItem[];
 
-    const plans = JSON.parse(raw) as CalendarPlan;
+    let plans: CalendarPlan;
+    try {
+      plans = JSON.parse(raw) as CalendarPlan;
+    } catch {
+      return [] as GroceryItem[];
+    }
     const recipeIds = new Set<string>();
 
     Object.values(plans).forEach((day) => {
@@ -91,8 +101,14 @@ const Grocery = () => {
     setList([...generatedList, ...manualItems]);
   };
 
-  const toggleChecked = (name: string) => {
-    setList((current) => current.map((item) => (item.name === name ? { ...item, checked: !item.checked } : item)));
+  const toggleChecked = (target: GroceryItem) => {
+    setList((current) =>
+      current.map((item) =>
+        item.name === target.name && item.unit === target.unit
+          ? { ...item, checked: !item.checked }
+          : item,
+      ),
+    );
   };
 
   const archiveCompleted = () => {
@@ -139,7 +155,7 @@ const Grocery = () => {
             {list.map((item) => (
               <Table.Row key={`${item.name}-${item.unit}`}>
                 <Table.Cell>
-                  <Checkbox.Root checked={item.checked} onCheckedChange={() => toggleChecked(item.name)}>
+                  <Checkbox.Root checked={item.checked} onCheckedChange={() => toggleChecked(item)}>
                     <Checkbox.HiddenInput />
                     <Checkbox.Control />
                   </Checkbox.Root>

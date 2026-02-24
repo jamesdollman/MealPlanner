@@ -23,6 +23,15 @@ type CalendarPlan = Record<string, DailyPlan>;
 
 const createDayPlan = (): DailyPlan => ({ breakfast: null, lunch: null, dinner: null, snack: null });
 
+const readPlansFromStorage = (): CalendarPlan => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? (JSON.parse(saved) as CalendarPlan) : {};
+  } catch {
+    return {};
+  }
+};
+
 const getWeekDays = () => {
   const now = new Date();
   const day = now.getDay();
@@ -43,10 +52,7 @@ const getWeekDays = () => {
 const Calendar = () => {
   const user = useSession((state) => state.user);
   const { recipes, fetchRecipes } = useRecipesStore();
-  const [plans, setPlans] = useState<CalendarPlan>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? (JSON.parse(saved) as CalendarPlan) : {};
-  });
+  const [plans, setPlans] = useState<CalendarPlan>(readPlansFromStorage);
   const weekDays = useMemo(() => getWeekDays(), []);
 
   useEffect(() => {
@@ -54,7 +60,6 @@ const Calendar = () => {
       fetchRecipes(user.user.id);
     }
   }, [fetchRecipes, user?.user?.id]);
-
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(plans));
@@ -71,11 +76,17 @@ const Calendar = () => {
   };
 
   const copyPreviousDay = (date: string, previousDate?: string) => {
-    if (!previousDate || !plans[previousDate]) return;
-    setPlans((current) => ({
-      ...current,
-      [date]: { ...plans[previousDate] },
-    }));
+    if (!previousDate) return;
+
+    setPlans((current) => {
+      const previousPlan = current[previousDate];
+      if (!previousPlan) return current;
+
+      return {
+        ...current,
+        [date]: { ...previousPlan },
+      };
+    });
   };
 
   const clearDay = (date: string) => {
