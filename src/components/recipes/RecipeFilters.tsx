@@ -3,16 +3,24 @@ import { Flex, Input, Button } from "@chakra-ui/react";
 type RecipeFiltersProps = {
   searchQuery: string;
   showFavouritesOnly: boolean;
+  selectedTag: string;
+  maxTotalTime: string;
   onSearchChange: (query: string) => void;
   onFavouritesToggle: (show: boolean) => void;
+  onTagChange: (tag: string) => void;
+  onMaxTotalTimeChange: (value: string) => void;
   onAddClick: () => void;
 };
 
 const RecipeFilters = ({
   searchQuery,
   showFavouritesOnly,
+  selectedTag,
+  maxTotalTime,
   onSearchChange,
   onFavouritesToggle,
+  onTagChange,
+  onMaxTotalTimeChange,
   onAddClick,
 }: RecipeFiltersProps) => {
   return (
@@ -22,7 +30,23 @@ const RecipeFilters = ({
           placeholder="Search recipes..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          maxW="300px"
+          maxW="260px"
+        />
+
+        <Input
+          placeholder="Filter tag"
+          value={selectedTag}
+          onChange={(e) => onTagChange(e.target.value)}
+          maxW="180px"
+        />
+
+        <Input
+          placeholder="Max total time (min)"
+          type="number"
+          min={0}
+          value={maxTotalTime}
+          onChange={(e) => onMaxTotalTimeChange(e.target.value)}
+          maxW="200px"
         />
 
         <Flex align="center" gap={2}>

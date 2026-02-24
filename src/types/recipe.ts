@@ -18,6 +18,10 @@ export type Recipe = {
   tags: string[];
   source: string;
   is_favourite: boolean;
+  calories_kcal: number | null;
+  protein_g: number | null;
+  carbs_g: number | null;
+  fat_g: number | null;
   created_at: string;
   updated_at: string;
 };

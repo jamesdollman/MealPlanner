@@ -116,7 +116,21 @@ const RecipeModal = ({
                     </Text>
                     <Text fontWeight="semibold">{recipe.servings}</Text>
                   </Box>
+                  {recipe.calories_kcal !== null && (
+                    <Box>
+                      <Text fontSize="sm" color="text.subtle">Calories</Text>
+                      <Text fontWeight="semibold">{recipe.calories_kcal} kcal</Text>
+                    </Box>
+                  )}
                 </Flex>
+
+                {(recipe.protein_g !== null || recipe.carbs_g !== null || recipe.fat_g !== null) && (
+                  <Flex gap={4} wrap="wrap">
+                    {recipe.protein_g !== null && <Text fontSize="sm">Protein: {recipe.protein_g}g</Text>}
+                    {recipe.carbs_g !== null && <Text fontSize="sm">Carbs: {recipe.carbs_g}g</Text>}
+                    {recipe.fat_g !== null && <Text fontSize="sm">Fat: {recipe.fat_g}g</Text>}
+                  </Flex>
+                )}
 
                 {recipe.tags && recipe.tags.length > 0 && (
                   <Flex gap={2} wrap="wrap">

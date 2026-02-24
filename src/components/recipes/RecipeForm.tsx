@@ -32,6 +32,10 @@ const defaultRecipe: RecipeInsert = {
   tags: [],
   source: "manual",
   is_favourite: false,
+  calories_kcal: null,
+  protein_g: null,
+  carbs_g: null,
+  fat_g: null,
 };
 
 const RecipeForm = ({
@@ -58,6 +62,10 @@ const RecipeForm = ({
         tags: editRecipe.tags,
         source: editRecipe.source,
         is_favourite: editRecipe.is_favourite,
+        calories_kcal: editRecipe.calories_kcal,
+        protein_g: editRecipe.protein_g,
+        carbs_g: editRecipe.carbs_g,
+        fat_g: editRecipe.fat_g,
       });
     } else {
       setRecipe(defaultRecipe);
@@ -222,6 +230,69 @@ const RecipeForm = ({
                     value={recipe.servings}
                     onChange={(e) =>
                       setRecipe({ ...recipe, servings: parseInt(e.target.value) || 4 })
+                    }
+                  />
+                </Field.Root>
+              </Flex>
+
+
+              <Flex gap={4}>
+                <Field.Root flex={1}>
+                  <Field.Label>Calories (kcal)</Field.Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={recipe.calories_kcal || ""}
+                    onChange={(e) =>
+                      setRecipe({
+                        ...recipe,
+                        calories_kcal: e.target.value ? parseInt(e.target.value) : null,
+                      })
+                    }
+                  />
+                </Field.Root>
+
+                <Field.Root flex={1}>
+                  <Field.Label>Protein (g)</Field.Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={recipe.protein_g || ""}
+                    onChange={(e) =>
+                      setRecipe({
+                        ...recipe,
+                        protein_g: e.target.value ? parseInt(e.target.value) : null,
+                      })
+                    }
+                  />
+                </Field.Root>
+
+                <Field.Root flex={1}>
+                  <Field.Label>Carbs (g)</Field.Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={recipe.carbs_g || ""}
+                    onChange={(e) =>
+                      setRecipe({
+                        ...recipe,
+                        carbs_g: e.target.value ? parseInt(e.target.value) : null,
+                      })
+                    }
+                  />
+                </Field.Root>
+
+                <Field.Root flex={1}>
+                  <Field.Label>Fat (g)</Field.Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={recipe.fat_g || ""}
+                    onChange={(e) =>
+                      setRecipe({
+                        ...recipe,
+                        fat_g: e.target.value ? parseInt(e.target.value) : null,
+                      })
                     }
                   />
                 </Field.Root>

@@ -15,6 +15,7 @@ type RecipeCardProps = {
   onView: (recipe: Recipe) => void;
   onEdit: (recipe: Recipe) => void;
   onDelete: (id: string) => void;
+  onDuplicate: (recipe: Recipe) => void;
   onToggleFavourite: (id: string) => void;
 };
 
@@ -23,6 +24,7 @@ const RecipeCard = ({
   onView,
   onEdit,
   onDelete,
+  onDuplicate,
   onToggleFavourite,
 }: RecipeCardProps) => {
   const totalTime = (recipe.prep_time_min || 0) + (recipe.cook_time_min || 0);
@@ -76,7 +78,24 @@ const RecipeCard = ({
             <Text fontSize="sm" color="text.subtle">
               {recipe.servings} servings
             </Text>
+            {recipe.calories_kcal !== null && (
+              <Text fontSize="sm" color="text.subtle">{recipe.calories_kcal} kcal</Text>
+            )}
           </Flex>
+
+          {(recipe.protein_g !== null || recipe.carbs_g !== null || recipe.fat_g !== null) && (
+            <Flex gap={3} mt={1} wrap="wrap">
+              {recipe.protein_g !== null && (
+                <Text fontSize="xs" color="text.subtle">P: {recipe.protein_g}g</Text>
+              )}
+              {recipe.carbs_g !== null && (
+                <Text fontSize="xs" color="text.subtle">C: {recipe.carbs_g}g</Text>
+              )}
+              {recipe.fat_g !== null && (
+                <Text fontSize="xs" color="text.subtle">F: {recipe.fat_g}g</Text>
+              )}
+            </Flex>
+          )}
 
           {recipe.tags && recipe.tags.length > 0 && (
             <Flex gap={1} mt={2} wrap="wrap">
@@ -125,6 +144,15 @@ const RecipeCard = ({
                   }}
                 >
                   Edit
+                </Menu.Item>
+                <Menu.Item
+                  value="duplicate"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDuplicate(recipe);
+                  }}
+                >
+                  Duplicate
                 </Menu.Item>
                 <Menu.Item
                   value="delete"

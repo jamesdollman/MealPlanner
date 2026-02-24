@@ -10,11 +10,12 @@ import RecipeForm from "./RecipeForm";
 type RecipeGridProps = {
   searchQuery: string;
   showFavouritesOnly: boolean;
-  onAddClick: () => void;
+  selectedTag: string;
+  maxTotalTime: string;
 };
 
-const RecipeGrid = ({ searchQuery, showFavouritesOnly }: RecipeGridProps) => {
-  const { recipes, isLoading, error, fetchRecipes, updateRecipe, deleteRecipe, toggleFavourite } =
+const RecipeGrid = ({ searchQuery, showFavouritesOnly, selectedTag, maxTotalTime }: RecipeGridProps) => {
+  const { recipes, isLoading, error, fetchRecipes, updateRecipe, deleteRecipe, toggleFavourite, addRecipe } =
     useRecipesStore();
   const user = useSession((state) => state.user);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -27,13 +28,21 @@ const RecipeGrid = ({ searchQuery, showFavouritesOnly }: RecipeGridProps) => {
     }
   }, [user?.user?.id, fetchRecipes]);
 
+  const maxTime = maxTotalTime ? parseInt(maxTotalTime, 10) : null;
+  const normalizedTag = selectedTag.trim().toLowerCase();
+
   const filteredRecipes = recipes.filter((recipe) => {
     const matchesSearch = searchQuery
       ? recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         recipe.description?.toLowerCase().includes(searchQuery.toLowerCase())
       : true;
     const matchesFavourites = showFavouritesOnly ? recipe.is_favourite : true;
-    return matchesSearch && matchesFavourites;
+    const matchesTag = normalizedTag
+      ? recipe.tags.some((tag) => tag.toLowerCase().includes(normalizedTag))
+      : true;
+    const totalTime = (recipe.prep_time_min || 0) + (recipe.cook_time_min || 0);
+    const matchesTime = maxTime !== null ? totalTime <= maxTime : true;
+    return matchesSearch && matchesFavourites && matchesTag && matchesTime;
   });
 
   const handleEdit = (recipe: Recipe) => {
@@ -47,6 +56,27 @@ const RecipeGrid = ({ searchQuery, showFavouritesOnly }: RecipeGridProps) => {
     if (selectedRecipe?.id === id) {
       setSelectedRecipe(null);
     }
+  };
+
+  const handleDuplicate = async (recipe: Recipe) => {
+    if (!user?.user?.id) return;
+    const duplicated: RecipeInsert = {
+      title: `${recipe.title} (Copy)`,
+      description: recipe.description,
+      ingredients: recipe.ingredients.map((ingredient) => ({ ...ingredient })),
+      instructions: [...recipe.instructions],
+      prep_time_min: recipe.prep_time_min,
+      cook_time_min: recipe.cook_time_min,
+      servings: recipe.servings,
+      tags: [...recipe.tags],
+      source: recipe.source,
+      is_favourite: false,
+      calories_kcal: recipe.calories_kcal,
+      protein_g: recipe.protein_g,
+      carbs_g: recipe.carbs_g,
+      fat_g: recipe.fat_g,
+    };
+    await addRecipe(user.user.id, duplicated);
   };
 
   const handleFormSubmit = async (recipeData: RecipeInsert) => {
@@ -74,10 +104,7 @@ const RecipeGrid = ({ searchQuery, showFavouritesOnly }: RecipeGridProps) => {
         </Text>
       )}
 
-      <Grid
-        templateColumns="repeat(auto-fill, minmax(300px, 1fr))"
-        gap={4}
-      >
+      <Grid templateColumns="repeat(auto-fill, minmax(300px, 1fr))" gap={4}>
         {filteredRecipes.map((recipe) => (
           <RecipeCard
             key={recipe.id}
@@ -85,6 +112,7 @@ const RecipeGrid = ({ searchQuery, showFavouritesOnly }: RecipeGridProps) => {
             onView={setSelectedRecipe}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onDuplicate={handleDuplicate}
             onToggleFavourite={toggleFavourite}
           />
         ))}
@@ -92,7 +120,7 @@ const RecipeGrid = ({ searchQuery, showFavouritesOnly }: RecipeGridProps) => {
 
       {filteredRecipes.length === 0 && !isLoading && (
         <Text textAlign="center" color="text.muted" mt={8}>
-          {searchQuery || showFavouritesOnly
+          {searchQuery || showFavouritesOnly || selectedTag || maxTotalTime
             ? "No recipes match your filters"
             : "No recipes yet. Add your first recipe to get started!"}
         </Text>
