@@ -1,4 +1,4 @@
-import { Box, Flex, Input, Button } from "@chakra-ui/react";
+import { Flex, Input, Button } from "@chakra-ui/react";
 
 type RecipeFiltersProps = {
   searchQuery: string;

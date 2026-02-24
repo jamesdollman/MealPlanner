@@ -11,10 +11,19 @@ import {
 import { useState } from "react";
 import { FaRegUser, FaBook, FaBox, FaRobot, FaCalendar, FaShoppingCart } from "react-icons/fa";
 import AccountPreferences from "./AccountPreferences";
+import { supabase } from "../api/supabase";
+import { useSession } from "../zustand/user";
 
 const Navbar = () => {
-  const { page, updatePage } = usePageSelector();
+  const { page, updatePage, resetPage } = usePageSelector();
   const [showAccountPreferences, setAPOpen] = useState(false);
+  const resetSession = useSession((state) => state.resetSession);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    resetSession();
+    resetPage();
+  };
 
   return (
     <>
@@ -116,7 +125,7 @@ const Navbar = () => {
                 <Menu.Item value="feature-previews">Feature previews</Menu.Item>
                 <Menu.Item value="changelog">Changelog</Menu.Item>
                 <Menu.Item value="language">Language</Menu.Item>
-                <Menu.Item value="logout" color="red.fg">
+                <Menu.Item value="logout" color="red.fg" onClick={handleLogout}>
                   Log out
                 </Menu.Item>
               </Menu.Content>

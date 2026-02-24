@@ -73,6 +73,7 @@ const PantryList = () => {
         onCategoryChange={setSelectedCategory}
       />
 
+      {/* TODO(step-1-scope): extend loading/error/empty treatment to modals/forms in a later pass. */}
       {error && (
         <Text color="red.fg" mt={4}>
           {error}

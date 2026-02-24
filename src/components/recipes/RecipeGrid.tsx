@@ -67,6 +67,7 @@ const RecipeGrid = ({ searchQuery, showFavouritesOnly }: RecipeGridProps) => {
 
   return (
     <Box>
+      {/* TODO(step-1-scope): extend loading/error/empty treatment to modals/forms in a later pass. */}
       {error && (
         <Text color="red.fg" mb={4}>
           {error}
