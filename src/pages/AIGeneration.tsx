@@ -14,22 +14,15 @@ import {
   Textarea,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import type { PantryItem, RecipeInsert } from "../types";
+import type { PantryItem } from "../types";
+import { generateGeminiRecipeSuggestions, type Suggestion } from "../api/gemini";
 import { usePantryStore } from "../zustand/pantry";
 import { useRecipesStore } from "../zustand/recipes";
 import { useSession } from "../zustand/user";
 
 const DIETARY_TAGS = ["vegetarian", "vegan", "gluten_free", "high_protein", "low_carb"];
 
-type Suggestion = {
-  title: string;
-  description: string;
-  tags: string[];
-  ingredients: RecipeInsert["ingredients"];
-  instructions: string[];
-};
-
-const createSuggestions = ({
+const createFallbackSuggestions = ({
   mealType,
   prepTime,
   servings,
@@ -90,6 +83,7 @@ const AIGeneration = () => {
   const [promptNotes, setPromptNotes] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     if (user?.user?.id) {
@@ -102,7 +96,7 @@ const AIGeneration = () => {
     setDietaryTags((current) => (current.includes(tag) ? current.filter((t) => t !== tag) : [...current, tag]));
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     const prepTimeValue = Number(prepTime);
     const servingsValue = Number(servings);
 
@@ -117,15 +111,27 @@ const AIGeneration = () => {
     }
 
     setError(null);
-    setSuggestions(
-      createSuggestions({
-        mealType,
-        prepTime: prepTimeValue,
-        servings: servingsValue,
-        dietaryTags,
-        pantryItems: items,
-      }),
-    );
+    setIsGenerating(true);
+
+    const generationOptions = {
+      mealType,
+      prepTime: prepTimeValue,
+      servings: servingsValue,
+      dietaryTags,
+      pantryItems: items,
+      promptNotes,
+    };
+
+    try {
+      const geminiSuggestions = await generateGeminiRecipeSuggestions(generationOptions);
+      setSuggestions(geminiSuggestions);
+    } catch (generationError) {
+      const message = generationError instanceof Error ? generationError.message : "Unknown generation error.";
+      setSuggestions(createFallbackSuggestions(generationOptions));
+      setError(`Gemini is unavailable right now, so we generated local suggestions instead. ${message}`);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const saveToRecipes = async (suggestion: Suggestion) => {
@@ -194,7 +200,7 @@ const AIGeneration = () => {
             </Flex>
           </Box>
 
-          <Button onClick={handleGenerate}>Generate Suggestions</Button>
+          <Button onClick={handleGenerate} loading={isGenerating}>Generate Suggestions</Button>
           {error && <Text color="red.fg">{error}</Text>}
         </Stack>
 
