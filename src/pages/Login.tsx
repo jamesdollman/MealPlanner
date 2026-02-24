@@ -11,16 +11,11 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { useSession } from ".././zustand/user";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "../api/supabase";
 
-// Create a single supabase client for interacting with your database
-const supabase = createClient(
-   import.meta.env.VITE_SUPABASE_PROJECT_URL,
-   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-);
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("dollmanjamie@outlook.com");
+  const [password, setPassword] = useState("Jamie2001!");
   const setLoggedInState = useSession((state) => state.setLoggedInState);
 
   const {

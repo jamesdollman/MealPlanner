@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(head:*)",
+      "Bash(cd \"C:\\\\Users\\\\Nebula PC\\\\Documents\\\\Projects\\\\MealPlanner\" && npm run build 2>&1)"
+    ]
+  }
+}

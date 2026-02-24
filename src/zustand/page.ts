@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-type PageOptions = "recipes" | "home";
+type PageOptions = "home" | "recipes" | "pantry" | "ai-generation" | "calendar" | "grocery";
 
 type Pages = {
   page: PageOptions;

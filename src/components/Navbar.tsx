@@ -1,38 +1,133 @@
 import { usePageSelector } from "../zustand/page";
-import { Button, Flex, IconButton, Link } from "@chakra-ui/react";
-import { FaRegUser } from "react-icons/fa";
+import {
+  Button,
+  Flex,
+  IconButton,
+  Link,
+  Menu,
+  Portal,
+  Text,
+} from "@chakra-ui/react";
+import { useState } from "react";
+import { FaRegUser, FaBook, FaBox, FaRobot, FaCalendar, FaShoppingCart } from "react-icons/fa";
+import AccountPreferences from "./AccountPreferences";
 
 const Navbar = () => {
-  const updatePage = usePageSelector((state) => state.updatePage);
+  const { page, updatePage } = usePageSelector();
+  const [showAccountPreferences, setAPOpen] = useState(false);
 
   return (
-    <Flex
-      borderBottom={"2px solid grey"}
-      padding="2"
-      position={"sticky"}
-      width="100%"
-      justifyContent={"space-between"}
-    >
-      <Link
-        onClick={() => {
-          updatePage("home");
-        }}
+    <>
+      <Flex
+        borderBottom={"2px solid grey"}
+        padding="2"
+        position={"sticky"}
+        width="100%"
+        justifyContent={"space-between"}
+        alignItems="center"
       >
-        Meal Planner
-      </Link>
+        <Link
+          onClick={() => {
+            updatePage("home");
+          }}
+          fontWeight="bold"
+          fontSize="lg"
+        >
+          Meal Planner
+        </Link>
 
-      <Button
-        variant={"outline"}
-        onClick={() => {
-          updatePage("recipes");
-        }}
-      >
-        Recipes
-      </Button>
-      <IconButton variant={"outline"}>
-        <FaRegUser />
-      </IconButton>
-    </Flex>
+        <Flex gap={2}>
+          <Button
+            variant={page === "pantry" ? "solid" : "outline"}
+            size="sm"
+            onClick={() => {
+              updatePage("pantry");
+            }}
+          >
+            <FaBox style={{ marginRight: "4px" }} />
+            Pantry
+          </Button>
+
+          <Button
+            variant={page === "recipes" ? "solid" : "outline"}
+            size="sm"
+            onClick={() => {
+              updatePage("recipes");
+            }}
+          >
+            <FaBook style={{ marginRight: "4px" }} />
+            Recipes
+          </Button>
+
+          <Button
+            variant={page === "ai-generation" ? "solid" : "outline"}
+            size="sm"
+            onClick={() => {
+              updatePage("ai-generation");
+            }}
+          >
+            <FaRobot style={{ marginRight: "4px" }} />
+            AI Generate
+          </Button>
+
+          <Button
+            variant={page === "calendar" ? "solid" : "outline"}
+            size="sm"
+            onClick={() => {
+              updatePage("calendar");
+            }}
+          >
+            <FaCalendar style={{ marginRight: "4px" }} />
+            Calendar
+          </Button>
+
+          <Button
+            variant={page === "grocery" ? "solid" : "outline"}
+            size="sm"
+            onClick={() => {
+              updatePage("grocery");
+            }}
+          >
+            <FaShoppingCart style={{ marginRight: "4px" }} />
+            Grocery
+          </Button>
+        </Flex>
+
+        <Menu.Root>
+          <Menu.Trigger asChild>
+            <IconButton variant={"outline"} size="sm">
+              <FaRegUser />
+            </IconButton>
+          </Menu.Trigger>
+          <Portal>
+            <Menu.Positioner>
+              <Menu.Content>
+                <Text px={3} py={2} fontSize="sm" color="text.muted">
+                  Account
+                </Text>
+                <Menu.Item
+                  value="account-prefs"
+                  onClick={() => {
+                    setAPOpen(true);
+                  }}
+                >
+                  Account preferences
+                </Menu.Item>
+                <Menu.Item value="feature-previews">Feature previews</Menu.Item>
+                <Menu.Item value="changelog">Changelog</Menu.Item>
+                <Menu.Item value="language">Language</Menu.Item>
+                <Menu.Item value="logout" color="red.fg">
+                  Log out
+                </Menu.Item>
+              </Menu.Content>
+            </Menu.Positioner>
+          </Portal>
+        </Menu.Root>
+      </Flex>
+      {showAccountPreferences && (
+        <AccountPreferences open={showAccountPreferences} onAccountSettingsClose={() => setAPOpen(false)} />
+      )}
+    </>
   );
 };
 
